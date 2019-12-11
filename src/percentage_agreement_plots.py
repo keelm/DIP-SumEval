@@ -117,7 +117,7 @@ def agreement_analysis(crowd_df, anno, ):
         # ax.set_xlim([0.6, 1.0])
     ax.yaxis.label.set_visible(False)
     plt.tight_layout()
-    plt.savefig('../figures/{}_percentage_agreement_criteria.pdf'.format(anno), bboxinches='tight', padinches=0)
+    # plt.savefig('../figures/{}_percentage_agreement_criteria.pdf'.format(anno), bboxinches='tight', padinches=0)
     plt.show()
     #by methods
     sysmeans=weighted_voting_df.groupby('method')['percentage_agreement'].mean()
@@ -126,7 +126,7 @@ def agreement_analysis(crowd_df, anno, ):
     ax.xaxis.label.set_visible(False)
 
     plt.tight_layout()
-    plt.savefig('../figures/{}_percentage_agreement_by_method.pdf'.format(anno), bboxinches='tight', padinches=0)
+    # plt.savefig('../figures/{}_percentage_agreement_by_method.pdf'.format(anno), bboxinches='tight', padinches=0)
     plt.show()
 
     # Krippendorf alpha: (annotatorId, comparisonId, igreaterj? (bool)) -> [0,1]
