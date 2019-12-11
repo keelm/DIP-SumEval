@@ -98,7 +98,7 @@ def agreement_analysis(crowd_df, anno, ):
     method_j = weighted_voting_df.drop(columns='method_i').rename(columns={'method_j': 'method'})
     method_j['left_won_vote?'] = ~method_j['left_won_vote?']
     method_j['percentage_agreement'] = method_j['percentage_agreement'].apply(lambda x: 1. - x)
-    method_j['votes'] = method_j['votes'].apply(lambda x: 7 - x)
+    method_j['votes'] = method_j[['votes', 'total_votes']].apply(lambda x: (x['total_votes'] - x['votes']), axis=1)
     weighted_voting_df = pd.concat([method_i, method_j])
     weighted_voting_df.reset_index(drop=True)
     weighted_voting_df = weighted_voting_df.sort_values(['comparisonId'])
