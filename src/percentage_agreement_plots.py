@@ -12,6 +12,7 @@ pairanno_criteria = ['Non-Redundancy', 'Referential Clarity', 'Structure', 'Read
 all_methods_ordered = ['H1', 'H2', 'H3', 'H4', 'H5', 'LeadFirst', 'MMR', 'MMR*', 'Submodular', 'PG-MMR' ]
 
 def likertanno_percentage_agreement(likertanno):
+    # transforms the likertAnno dataset into
     likertanno.dropna(subset=['method'], inplace=True)
     likertanno = likertanno.astype({'topic': 'int32'}, )
     anno1_melted = pd.melt(likertanno, id_vars=['method', 'topic', 'annotator'], var_name='criterion', value_name ='score')
@@ -28,11 +29,6 @@ def likertanno_percentage_agreement(likertanno):
             return x > rowi
         iterlist = list(his_annotations['score'].iteritems())
         for i, (ind, score) in enumerate(iterlist):
-            # Die Methode, wie man Perc. Agreement für Anno1 berechnen könnte, ist folgende. Man schaut
-            # sich für jeden Annotator alle Paarungen seiner Bewertungen (also alle Topic vs. Topic
-            # Paarungen in unserem Fall) an, welche davon eine unterschiedliche Likert-Bewertungen
-            # haben. Für diese schreibt man eine Zeile
-            # Anno-ID;SummaryXTopicY_SummaryZTopicT;0 oder 1 (gewonnen oder verloren)
             remaining_rows_by_annotator = list(list(zip(*iterlist))[0][i:])
             subresult = his_annotations['score'].loc[remaining_rows_by_annotator].apply(row_compare, args=[score]).rename('i greater j?')
             subresult = subresult.reset_index()
@@ -47,6 +43,7 @@ def likertanno_percentage_agreement(likertanno):
     crowd_df = pd.concat([crowd_df] + to_concat, ignore_index=False, sort=True)
     print(crowd_df.groupby(['annotator', 'criterion'])['i greater j?'].count().groupby('annotator').mean().rename('average number of comparisons. should be 40% to 75% of 49 choose 2==1179'))
     return crowd_df
+
 
 
 def agreement_analysis(crowd_df, anno, ):
@@ -89,7 +86,7 @@ def agreement_analysis(crowd_df, anno, ):
         if ag > 0.5:
             return True
         elif ag == 0.5:
-            #for purposes of criteria agreement_analysis, its a 0.5 either way
+            #for purposes of criteria agreement_analysis, its a 0.5 either way, so we just assign a random winner
             return bool(random.getrandbits(1))
         else: return False
     weighted_voting_df['left_won_vote?'] = weighted_voting_df.apply(won_vote, axis=1)
@@ -110,14 +107,16 @@ def agreement_analysis(crowd_df, anno, ):
     if anno == 'likertanno':
         critmeans.reindex(likertanno_criteria, axis=0)
         ax = critmeans.plot(y='criterion', x='percentage_agreement', kind='barh', )
+        ax.set_xlabel('percentage agreement')
         ax.set_xlim([0.6, 1.0])
     if anno == 'pairanno':
         critmeans.reindex(pairanno_criteria, axis=0)
         ax = critmeans.plot(y='criterion', x='percentage_agreement', kind='barh', )
+        ax.set_xlabel('percentage agreement')
         # ax.set_xlim([0.6, 1.0])
     ax.yaxis.label.set_visible(False)
     plt.tight_layout()
-    # plt.savefig('../figures/{}_percentage_agreement_criteria.pdf'.format(anno), bboxinches='tight', padinches=0)
+    plt.savefig('../figures/{}_percentage_agreement_criteria.pdf'.format(anno), bboxinches='tight', padinches=0)
     plt.show()
     #by methods
     sysmeans=weighted_voting_df.groupby('method')['percentage_agreement'].mean()
@@ -126,17 +125,34 @@ def agreement_analysis(crowd_df, anno, ):
     ax.xaxis.label.set_visible(False)
 
     plt.tight_layout()
-    # plt.savefig('../figures/{}_percentage_agreement_by_method.pdf'.format(anno), bboxinches='tight', padinches=0)
+    plt.savefig('../figures/{}_percentage_agreement_by_method.pdf'.format(anno), bboxinches='tight', padinches=0)
     plt.show()
 
-    # Krippendorf alpha: (annotatorId, comparisonId, igreaterj? (bool)) -> [0,1]
-    comparisonId_df = comparisonId_df[['annotator', 'comparisonId', 'i greater j?']]
+    ####################### Krippendorf alpha ##########
+    #filter out single comparisons (only one annotator votes for a given comparison)
+    filtered_comparisons = comparisonId_df.groupby('comparisonId').filter(lambda x: len(x) > 1)
+    three_cols = ['annotator', 'comparisonId', 'i greater j?']
+    task = AnnotationTask(data=filtered_comparisons[three_cols].values)
 
-    task = AnnotationTask(data=comparisonId_df.values)
-    print('Overall Krippendorf alpha: {}'.format(task.alpha()))
+    krippendorf = [('Whole Dataset', task.alpha())]
+    criteria = {'likertanno': likertanno_criteria, 'pairanno': pairanno_criteria}
+    #by criteria:
+    for criterion in criteria[anno][::-1]: # [::-1] reverses the list
+        task = AnnotationTask(data=filtered_comparisons[
+            filtered_comparisons.criterion == criterion][three_cols].values)
+        # print('{} Krippendorf alpha for {}: \t{}'.format(criterion, anno, task.alpha()))
+        krippendorf.append((criterion, task.alpha()))
+    krippendorf = pd.DataFrame(data=krippendorf, columns=['criterion', 'krippendorf alpha'])
+    ax = krippendorf.plot(kind='barh')
+    ax.set_yticklabels(krippendorf.criterion)
+    ax.set_xlabel('Krippendorf alpha')
+    ax.get_legend().remove()
+    plt.tight_layout()
+    plt.savefig('../figures/{}_krippendorf_agreement.pdf'.format(anno), bboxinches='tight', padinches=0)
+    plt.show()
     return weighted_voting_df, crowd_df
 
-# LikertAnno:
+# LIKERTANNO:
 likertanno = pd.read_csv('../data/LikertAnno.csv')
 
 if os.path.exists('../data/likertanno_as_pairwise.pickle'):
@@ -148,6 +164,8 @@ with open('../data/likertanno_as_pairwise.pickle', 'wb') as f:
     pickle.dump(likertanno_as_pairwise, f)
 
 likertanno_weighted_voting_df, likertanno_as_pairwise = agreement_analysis(likertanno_as_pairwise, 'likertanno')
+
+# PAIRANNO
 
 pairanno = pd.read_csv('../data/PairAnno.csv')
 pairanno_weighted_voting_df, likertanno_as_pairwise = agreement_analysis(pairanno, 'pairanno')
