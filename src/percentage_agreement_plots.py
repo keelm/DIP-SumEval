@@ -14,7 +14,7 @@ all_methods_ordered = ['H1', 'H2', 'H3', 'H4', 'H5', 'LeadFirst', 'MMR', 'MMR*',
 def likertanno_percentage_agreement(likertanno):
     likertanno.dropna(subset=['method'], inplace=True)
     likertanno = likertanno.astype({'topic': 'int32'}, )
-    anno1_melted = pd.melt(likertanno, id_vars=['method', 'topic', 'annotator'], var_name='criterion', value_name ='score')
+    anno1_melted = pd.melt(likertanno, id_vars=['method', 'topic', 'annotator'], var_name='criterion', value_name ='score') #create one row for each method-annotator-topic-criterion combination. one annotation per row now
     annotators = list(set(likertanno.annotator))
     crowd_df = pd.DataFrame(columns=['method_i', 'method_j', 'criterion', 'topic', 'annotator', 'i greater j?'])
     to_concat = []
@@ -33,7 +33,7 @@ def likertanno_percentage_agreement(likertanno):
             # Paarungen in unserem Fall) an, welche davon eine unterschiedliche Likert-Bewertungen
             # haben. Für diese schreibt man eine Zeile
             # Anno-ID;SummaryXTopicY_SummaryZTopicT;0 oder 1 (gewonnen oder verloren)
-            remaining_rows_by_annotator = list(list(zip(*iterlist))[0][i:])
+            remaining_rows_by_annotator = list(list(zip(*iterlist))[0][i:]) #does include ind, but does not matter that much, because the comparison is ignored
             subresult = his_annotations['score'].loc[remaining_rows_by_annotator].apply(row_compare, args=[score]).rename('i greater j?')
             subresult = subresult.reset_index()
             subresult.rename(columns={'method': 'method_i'}, inplace=True)
@@ -43,7 +43,7 @@ def likertanno_percentage_agreement(likertanno):
             subresult['method_j'] = ind[0]
             subresult = subresult.loc[(~(subresult.method_i == subresult.method_j)) & (subresult.criterion == ind[3])]
             to_concat.append(subresult)
-        print('Annotator:', counter)
+        print('Annotator:', counter, annotator)
     crowd_df = pd.concat([crowd_df] + to_concat, ignore_index=False, sort=True)
     print(crowd_df.groupby(['annotator', 'criterion'])['i greater j?'].count().groupby('annotator').mean().rename('average number of comparisons. should be 40% to 75% of 49 choose 2==1179'))
     return crowd_df
