@@ -18,7 +18,9 @@ If you want to use the data, or just cite the paper, please use the following:
     address = {Marseille, France},
        note = {Data set available at \url{https://github.com/keelm/DIP-SumEval}},
         url = {https://aclanthology.org/2020.lrec-1.826},
-}``` 
+}
+``` 
+
 The data set is also accessible in the TUdatalib  institutional repository via https://tudatalib.ulb.tu-darmstadt.de/handle/tudatalib/2303
 
 ## The Summaries
