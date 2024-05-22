@@ -1,5 +1,5 @@
 # DIP-SumEval: A Data Set of Human Summary Evaluations
-This repository contains the summaries and evaluations from the paper _[A Dataset for the Analysis of Text Quality Dimensions in Summarization Evaluation](http://www.ke.tu-darmstadt.de/bibtex/publications/show/3200)_ presented at LREC 2020. 
+This repository contains the summaries and evaluations from the paper _[A Dataset for the Analysis of Text Quality Dimensions in Summarization Evaluation](https://ke-tud.github.io/bibtex/publications/show/3200)_ presented at LREC 2020. 
 In total, the data set contains 
 * over 400 automatically generated summaries for 49 topics of an data set for multi-document summarization,
 * 1274 judgements according to 11 text and summary quality criteria on a Likert-scale (1 to 5) performed by 26 trained annotators, 
@@ -13,10 +13,10 @@ If you want to use the data, or just cite the paper, please use the following:
       title = {A Data Set for the Analysis of Text Quality Dimensions in Summarization Evaluation},
   booktitle = {Proceedings of the Twelfth International Conference on Language Resources and Evaluation (LREC 2020)},
        year = {2020},
-      pages = {6690–-6699},
+      pages = {6690â€“-6699},
   publisher = {European Language Resources Association},
     address = {Marseille, France},
-       note = {Data set available at \url{https://github.com/keelm/DIP-SumEval}},
+       note = {Data set available at \url{https://github.com/keelm/DIP-SumEval} and \url{https://tudatalib.ulb.tu-darmstadt.de/handle/tudatalib/2303}},
         url = {https://aclanthology.org/2020.lrec-1.826},
 }
 ``` 
